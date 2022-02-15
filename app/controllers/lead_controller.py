@@ -43,10 +43,10 @@ def create_lead() -> tuple:
         return {"error": "Verique o formato do valor 'phone'. Formato aceito é: (XX)XXXXX-XXXX." }, HTTPStatus.BAD_REQUEST
 
     except KeyError as e:
-        return {"error": f"There are missing key: {e.args[0]}"}, HTTPStatus.BAD_REQUEST
+        return {"error": f"Faltando a chave necessária: {e.args[0]}"}, HTTPStatus.BAD_REQUEST
 
     except TypeError as e:
-        return {"error": f"There are excessive keys. The necessary keys are 'email', 'name', 'phone'."}, HTTPStatus.BAD_REQUEST
+        return {"error": f"Há chaves excessivas na requisição. As necessárias são: 'email', 'name', 'phone'."}, HTTPStatus.BAD_REQUEST
 
 
 
@@ -59,7 +59,6 @@ def read_leads() -> tuple:
         def sorter(element):
             return element['visits']
 
-
         serializer = [
             {
             "name": lead.name,
@@ -68,11 +67,10 @@ def read_leads() -> tuple:
             "creation_date": lead.creation_date,
             "last_visit": lead.last_visit,
             "visits": lead.visits
-        } 
-        # jsonify(lead)
-        for lead in leads]
+        } for lead in leads]
+
         serializer.sort(key=sorter, reverse=True)
-        # res = sorted(serializer, key=sorter, reverse=True)
+
 
         if not serializer:
             raise NotFound
@@ -80,23 +78,22 @@ def read_leads() -> tuple:
         return {"leads": serializer}, HTTPStatus.OK
     
     except NotFound:
-        return {"error": "The database is empty"}, HTTPStatus.NOT_FOUND
+        return {"error": "O banco de dados está vazio"}, HTTPStatus.NOT_FOUND
     
     
 
 
 
-def update_lead(email) -> tuple:
+def update_lead() -> tuple:
     try:
         data = request.get_json()
 
-        key = "email"
-        if key is not data.keys():
-            raise BadRequest
+        lead = LeadModel.query.filter_by(email = data['email'].lower()).one_or_none()
 
-        lead = LeadModel.query.get(email.lower())        
+        if not lead:
+            raise NotFound
 
-        setattr(lead, key, lead.visits + 1)
+        setattr(lead, "visits", lead.visits + 1)
         setattr(lead, "last_visit", datetime.now())
 
         current_app.db.session.add(lead)
@@ -104,11 +101,11 @@ def update_lead(email) -> tuple:
 
         return {}, HTTPStatus.NO_CONTENT
     
-    except Exception as e:
-        return {"error": e}
+    except KeyError as e:
+        return {"error": f"erro na chave: {e.args[0]}"}, HTTPStatus.BAD_REQUEST
 
-    except BadRequest as e:
-        return {"error": e}, HTTPStatus.BAD_REQUEST
+    except AttributeError as e:
+        return {"error": "Informe um valor do email em formato 'string'."}
     
     except NotFound:
         return {"error": "Lead não encontrado"}, HTTPStatus.NOT_FOUND
@@ -116,14 +113,25 @@ def update_lead(email) -> tuple:
 
 
 
-def erease_lead(email) -> None:
+def erease_lead() -> None:
     try:
-        lead_to_delete = LeadModel.query.get(email)
+        data = request.get_json()
+
+        lead_to_delete = LeadModel.query.filter_by(email = data['email'].lower()).one_or_none()
+       
+        if not lead_to_delete:
+            raise NotFound
 
         current_app.db.session.delete(lead_to_delete)
         current_app.db.session.commit()
 
         return {}, HTTPStatus.NO_CONTENT
+    
+    except KeyError as e:
+        return {"error": f"erro na chave: {e.args[0]}"}, HTTPStatus.BAD_REQUEST
+
+    except AttributeError as e:
+        return {"error": "Informe um valor do email em formato 'string'."}
     
     except NotFound:
         return {"error": "Lead não encontrado"}, HTTPStatus.NOT_FOUND
