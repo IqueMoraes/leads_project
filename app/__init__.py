@@ -12,6 +12,7 @@ def create_app():
 
     app.config['SQLALCHEMY_DATABASE_URI'] = env('DB_URI')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['JSON_SORT_KEYS'] = False
 
     database.init_app(app)
     migrations.init_app(app)

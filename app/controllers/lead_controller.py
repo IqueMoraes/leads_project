@@ -15,8 +15,10 @@ def create_lead() -> tuple:
         data: LeadModel = request.get_json()
         data['creation_date'] = datetime.now()
         data['last_visit'] = data['creation_date']
+        data['email'] = data['email'].lower()
 
-        print(request.args.get('email'))
+        if not  data['phone']:
+            raise KeyError
 
         if not re.fullmatch("\([0-9]{2}\)[0-9]{5}\-[0-9]{4}", data['phone']):
             raise BadRequest
@@ -32,10 +34,21 @@ def create_lead() -> tuple:
     
     except IntegrityError as e :
         if isinstance(e.orig, UniqueViolation):
-            return { "error": f"{e.orig} já existente"}, HTTPStatus.CONFLICT
+            err = str(e.orig)
+            index = err.find("(")
+            key_str = err[index+1:index+6]
+            return { "error": f"{key_str} já existente"}, HTTPStatus.CONFLICT
 
     except BadRequest:
         return {"error": "Verique o formato do valor 'phone'. Formato aceito é: (XX)XXXXX-XXXX." }, HTTPStatus.BAD_REQUEST
+
+    except KeyError as e:
+        return {"error": f"There are missing key: {e.args[0]}"}, HTTPStatus.BAD_REQUEST
+
+    except TypeError as e:
+        return {"error": f"There are excessive keys. The necessary keys are 'email', 'name', 'phone'."}, HTTPStatus.BAD_REQUEST
+
+
 
 
 
@@ -46,44 +59,56 @@ def read_leads() -> tuple:
         def sorter(element):
             return element['visits']
 
-        serializer = sorted([{
+
+        serializer = [
+            {
             "name": lead.name,
             "email": lead.email,
             "phone": lead.phone,
             "creation_date": lead.creation_date,
             "last_visit": lead.last_visit,
             "visits": lead.visits
-        } for lead in leads], key=sorter, reverse=True)
+        } 
+        # jsonify(lead)
+        for lead in leads]
+        serializer.sort(key=sorter, reverse=True)
+        # res = sorted(serializer, key=sorter, reverse=True)
 
         if not serializer:
             raise NotFound
 
-        return {"leads": serializer}
+        return {"leads": serializer}, HTTPStatus.OK
     
     except NotFound:
         return {"error": "The database is empty"}, HTTPStatus.NOT_FOUND
-
+    
     
 
 
 
 def update_lead(email) -> tuple:
     try:
-        data = request.args
+        data = request.get_json()
+
         key = "email"
-        if key is not data:
+        if key is not data.keys():
             raise BadRequest
-        lead = LeadModel.query.get(email)        
+
+        lead = LeadModel.query.get(email.lower())        
 
         setattr(lead, key, lead.visits + 1)
+        setattr(lead, "last_visit", datetime.now())
 
         current_app.db.session.add(lead)
         current_app.db.session.commit()
 
         return {}, HTTPStatus.NO_CONTENT
+    
+    except Exception as e:
+        return {"error": e}
 
-    except BadRequest:
-        return {"error": "XX"}, HTTPStatus.BAD_REQUEST
+    except BadRequest as e:
+        return {"error": e}, HTTPStatus.BAD_REQUEST
     
     except NotFound:
         return {"error": "Lead não encontrado"}, HTTPStatus.NOT_FOUND
