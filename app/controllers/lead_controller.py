@@ -105,7 +105,7 @@ def update_lead() -> tuple:
         return {"error": f"erro na chave: {e.args[0]}"}, HTTPStatus.BAD_REQUEST
 
     except AttributeError as e:
-        return {"error": "Informe um valor do email em formato 'string'."}
+        return {"error": "Informe um valor do email em formato 'string'."}, HTTPStatus.BAD_REQUEST
     
     except NotFound:
         return {"error": "Lead não encontrado"}, HTTPStatus.NOT_FOUND
