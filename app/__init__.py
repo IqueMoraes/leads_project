@@ -10,7 +10,7 @@ env.read_env()
 def create_app():
     app = Flask(__name__)
 
-    app.config['SQLALCHEMY_DATABASE_URI'] = env('DATABASE_URL')
+    app.config['SQLALCHEMY_DATABASE_URI'] = env('DATABASE_URL_SQL')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['JSON_SORT_KEYS'] = False
 
