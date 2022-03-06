@@ -46,7 +46,7 @@ def create_lead() -> tuple:
         return {"error": f"Faltando a chave necessária: {e.args[0]}"}, HTTPStatus.BAD_REQUEST
 
     except TypeError as e:
-        return {"error": f"Há chaves excessivas na requisição. As necessárias são: 'email', 'name', 'phone'."}, HTTPStatus.BAD_REQUEST
+        return {"error": "Há chaves excessivas na requisição. As necessárias são: 'email', 'name', 'phone'."}, HTTPStatus.BAD_REQUEST
 
 
 
