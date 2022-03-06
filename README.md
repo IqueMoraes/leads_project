@@ -163,11 +163,11 @@ Em caso de sucesso não há retorno esperado, 204.
 ## Possíveis erros - UPDATE
 #### Ausência da chave email.
 Retorno esperado, 400:
->{"error": "Erro na chave email}
+>{"error": "Erro na chave email"}
 
 #### Valor diferente de string no campo email
 Retorno esperado, 400:
->{"error": "Informe um valor do email em formato 'string'.}
+>{"error": "Informe um valor do email em formato 'string'."}
 
 #### Email não cadastrado no banco de dados.
 Retorno esperado, 404:
@@ -185,11 +185,11 @@ Em caso de sucesso não há retorno esperado, 204.
 ## Possíveis erros - DELETE
 #### Ausência da chave email.
 Retorno esperado, 400:
->{"error": "Erro na chave email}
+>{"error": "Erro na chave email"}
 
 #### Valor diferente de string no campo email
 Retorno esperado, 400:
->{"error": "Informe um valor do email em formato 'string'.}
+>{"error": "Informe um valor do email em formato 'string'."}
 
 #### Email não cadastrado no banco de dados.
 Retorno esperado, 404:
